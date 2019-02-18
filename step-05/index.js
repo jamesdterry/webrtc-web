@@ -1,12 +1,24 @@
 'use strict';
 
 const express = require('express');
+const fs = require('fs');
 var os = require('os');
-var http = require('http');
+var https = require('https');
 var socketIO = require('socket.io');
 
+// Certificate
+const privateKey = fs.readFileSync('/etc/letsencrypt/live/ctest.gtdev.club/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('/etc/letsencrypt/live/ctest.gtdev.club/cert.pem', 'utf8');
+const ca = fs.readFileSync('/etc/letsencrypt/live/ctest.gtdev.club/chain.pem', 'utf8');
+
+const credentials = {
+	key: privateKey,
+	cert: certificate,
+	ca: ca
+};
+
 const app = express();
-app.server = http.createServer(app);
+app.server = https.createServer(credentials, app);
 const io = socketIO(app.server);
 
 io.sockets.on('connection', function(socket) {
@@ -73,7 +85,7 @@ app.get('/', (req, res) => {
 });
 */
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 443;
 
 app.server.listen(PORT, function() {
   console.log(`listening on ${PORT}`);
