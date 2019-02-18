@@ -1,16 +1,14 @@
 'use strict';
 
+const express = require('express');
 var os = require('os');
-var nodeStatic = require('node-static');
 var http = require('http');
 var socketIO = require('socket.io');
 
-var fileServer = new(nodeStatic.Server)();
-var app = http.createServer(function(req, res) {
-  fileServer.serve(req, res);
-}).listen(8080);
+const app = express();
+app.server = http.createServer(app);
+const io = socketIO(app.server);
 
-var io = socketIO.listen(app);
 io.sockets.on('connection', function(socket) {
 
   // convenience function to log server messages on the client
@@ -64,4 +62,19 @@ io.sockets.on('connection', function(socket) {
     console.log('received bye');
   });
 
+});
+
+app.use('/js', express.static('js'));
+app.use('/', express.static('.'));
+
+/*
+app.get('/', (req, res) => {
+  res.render('index', { });
+});
+*/
+
+const PORT = process.env.PORT || 5000;
+
+app.server.listen(PORT, function() {
+  console.log(`listening on ${PORT}`);
 });
